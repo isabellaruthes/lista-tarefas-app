@@ -47,7 +47,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>📝 Minhas Tarefas</Text>
+      <Text style={styles.titulo}>Minhas Tarefas</Text>
 
       <View style={styles.inputArea}>
         <TextInput
