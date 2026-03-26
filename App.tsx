@@ -1,117 +1,157 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Image, TextInput, Pressable } from 'react-native';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet
+} from 'react-native';
 
-const nomesIniciais = [
-  "Luis",
-  "Fernado",
-  "José",
-]
+type Tarefa = {
+  id: string;
+  texto: string;
+  concluida: boolean;
+};
 
 export default function App() {
+  const [tarefa, setTarefa] = useState<string>('');
+  const [lista, setLista] = useState<Tarefa[]>([]);
 
-  var [nomes, setNomes] = useState(nomesIniciais);
-  var [novoNome, setNovoNome] = useState('');
+  const adicionarTarefa = () => {
+    if (!tarefa.trim()) return;
 
-  const adicionarNome = () => {
-    if (novoNome.trim() !== '') {
-      setNomes([...nomes, novoNome.trim()]);
-      setNovoNome('');
-    }
-  }
+    const nova: Tarefa = {
+      id: Date.now().toString(),
+      texto: tarefa,
+      concluida: false
+    };
+
+    setLista((prev) => [...prev, nova]);
+    setTarefa('');
+  };
+
+  const toggleTarefa = (id: string) => {
+    setLista((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, concluida: !item.concluida }
+          : item
+      )
+    );
+  };
+
+  const removerTarefa = (id: string) => {
+    setLista((prev) => prev.filter((item) => item.id !== id));
+  };
 
   return (
     <View style={styles.container}>
-      {
+      <Text style={styles.titulo}>📝 Minhas Tarefas</Text>
 
-        nomes.map((nome, index) => (
-          <View key={index} style={styles.elemtentos}>
-            <Text style={styles.itens}> {nome} </Text>
-          </View>
-        ))
-      }
-      <View style={styles.inputContainer}>
-
+      <View style={styles.inputArea}>
         <TextInput
+          placeholder="Digite uma tarefa..."
+          placeholderTextColor="#94a3b8"
+          value={tarefa}
+          onChangeText={setTarefa}
           style={styles.input}
-          placeholder='Digite um novo nome'
-          placeholderTextColor='#fff'
-          value={novoNome}
-          onChangeText={setNovoNome}
-          onSubmitEditing={adicionarNome}
         />
-        <Pressable style={styles.botao} onPress={adicionarNome}>
-          <Text style={styles.textoBotao}>ADICIONAR</Text>
-        </Pressable>
 
+        <TouchableOpacity style={styles.botao} onPress={adicionarTarefa}>
+          <Text style={styles.botaoTexto}>+</Text>
+        </TouchableOpacity>
       </View>
-      <StatusBar style="auto" />
+
+      <FlatList
+        data={lista}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <TouchableOpacity onPress={() => toggleTarefa(item.id)}>
+              <Text
+                style={[
+                  styles.texto,
+                  item.concluida && styles.concluida
+                ]}
+              >
+                {item.texto}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => removerTarefa(item.id)}>
+              <Text style={styles.delete}>🗑️</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  textoBotao: {
+  container: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+    padding: 20,
+    paddingTop: 60
+  },
+
+  titulo: {
+    fontSize: 26,
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
+    marginBottom: 20
   },
-  botao: {
-    backgroundColor: '#c81ecb',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
-    justifyContent: 'center',
-  },
-  inputContainer: {
+
+  inputArea: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 20,
-    width: '100%',
-    paddingHorizontal: 20,
+    marginBottom: 20
   },
+
   input: {
     flex: 1,
     backgroundColor: '#1e293b',
     color: '#fff',
     padding: 12,
-    borderRadius: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  elemtentos: {
-    backgroundColor: '#c81ecb',
-    borderRadius: 16,
-    marginTop: 8,
-  },
-  itens: {
-    color: '#f5f5f5',
-    fontSize: 16,
-    fontWeight: '800',
-    padding: 4,
-  },
-  images: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    marginTop: 16
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    color: '#fff',
-    fontSize: 26,
-    fontWeight: `bold`,
-  },
-  subtitle: {
-    color: `#9ca3af`,
-    fontSize: 16,
-    marginTop: 8,
+    borderRadius: 10
   },
 
+  botao: {
+    marginLeft: 10,
+    backgroundColor: '#22c55e',
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+    borderRadius: 10
+  },
+
+  botaoTexto: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold'
+  },
+
+  card: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#1e293b',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 10
+  },
+
+  texto: {
+    color: '#fff',
+    fontSize: 16
+  },
+
+  concluida: {
+    textDecorationLine: 'line-through',
+    color: '#94a3b8'
+  },
+
+  delete: {
+    fontSize: 18
+  }
 });
